@@ -1,4 +1,4 @@
-// lib/screens/edit_report_screen.dart (Tugas Mhs 4)
+// lib/screens/edit_report_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +7,7 @@ import 'dart:io';
 // Import Model dan Provider
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
+// import '../screens/dashboard_screen.dart'; // Tidak perlu jika menggunakan Named Routes
 
 class EditReportScreen extends ConsumerStatefulWidget {
   final ReportModel report;
@@ -25,7 +26,7 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
   @override
   void initState() {
     super.initState();
-    // Isi field dengan catatan yang sudah ada jika ada (walaupun seharusnya kosong saat Pending)
+    // Inisialisasi controller dengan catatan yang sudah ada
     _notesController.text = widget.report.officerNotes ?? '';
   }
 
@@ -35,7 +36,7 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
     super.dispose();
   }
 
-  // Metode untuk memilih foto hasil pengerjaan
+  // Metode untuk memilih foto hasil pengerjaan (menggunakan kamera)
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
@@ -49,6 +50,7 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
 
   // Metode untuk menyimpan perubahan status
   Future<void> _submitCompletion() async {
+    // Validasi Wajib: Gambar harus ada
     if (_pickedOfficerImage == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -70,7 +72,7 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
         officerImagePath: _pickedOfficerImage!.path,
       );
 
-      // 2. Panggil metode updateReport di Notifier
+      // 2. Panggil metode updateReport di Notifier (interaksi database)
       await ref.read(reportListProvider.notifier).updateReport(updatedReport);
 
       // 3. Tampilkan pesan sukses dan navigasi kembali
@@ -81,11 +83,17 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Kembali ke Detail Screen, lalu Detail Screen akan kembali ke Dashboard
-        Navigator.pop(context); // Tutup Edit Screen
-        Navigator.pop(context); // Tutup Detail Screen
+        
+        // Mengarahkan langsung ke Dashboard dan menghapus semua rute di belakangnya.
+        // Ini memastikan tidak ada Detail Screen atau Edit Screen yang tersisa di tumpukan.
+        Navigator.pushNamedAndRemoveUntil(
+          context, 
+          '/dashboard', 
+          (Route<dynamic> route) => false,
+        );
       }
     } catch (e) {
+      // Tangani error yang terjadi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -95,9 +103,12 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      // Matikan loading, baik sukses maupun gagal
+      if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+      }
     }
   }
 
@@ -118,7 +129,7 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
             const SizedBox(height: 20),
 
             // Input Catatan Petugas (Officer Notes)
-            TextField(
+            TextFormField( 
               controller: _notesController,
               decoration: const InputDecoration(
                 labelText: 'Catatan Petugas (Opsional)',
@@ -183,4 +194,49 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
       ),
     );
   }
-}
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

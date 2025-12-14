@@ -1,4 +1,5 @@
 // lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,8 +13,11 @@ import 'helpers/db_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔥 Inisialisasi database
-  await DbHelper.instance.resetDatabase(); 
+  // PERBAIKAN: Hapus atau komentari resetDatabase() untuk mengizinkan data persisten.
+  // Kode ini HANYA digunakan saat pengembangan untuk membersihkan data secara paksa.
+  // await DbHelper.instance.resetDatabase(); // <-- Hapus atau komentari baris ini!
+  
+  // Pastikan database terinisialisasi (dan menjalankan _onCreate jika baru)
   await DbHelper.instance.database;
 
   final prefs = await SharedPreferences.getInstance();
@@ -36,7 +40,9 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoggedIn = ref.watch(loginStateProvider);
+    // Cek apakah state tidak null (berarti ada user yang login)
+    final currentUser = ref.watch(loginStateProvider);
+    final isLoggedIn = currentUser != null; 
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -47,6 +53,7 @@ class MyApp extends ConsumerWidget {
         '/register': (context) => const RegisterScreen(),
         '/dashboard': (context) => const DashboardScreen(),
       },
+      // Navigasi berdasarkan apakah currentUser tidak null
       home: isLoggedIn
           ? const DashboardScreen()
           : const LoginScreen(),

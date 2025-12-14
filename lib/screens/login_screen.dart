@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/login_state.dart';
-import 'register_screen.dart';
 
 // Definisi Provider untuk status loading
-// Diletakkan di luar class widget agar dapat diakses oleh semua fungsi.
 final loadingStateProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +19,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Menambahkan GlobalKey untuk validasi form
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -38,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    // 2. Aktifkan loading (Menggunakan ref dari ConsumerState)
+    // 2. Aktifkan loading
     ref.read(loadingStateProvider.notifier).state = true;
 
     try {
@@ -49,7 +45,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _passwordController.text.trim(),
           );
 
-      if (!success && mounted) {
+      if (success) {
+        // ✅ NAVIGASI KE DASHBOARD:
+        if (mounted) {
+          // Navigasi ke Named Route '/dashboard' dan hapus semua rute di bawahnya
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/dashboard',
+            (Route<dynamic> route) => false, // Hapus semua rute lama
+          );
+        }
+      } else if (!success && mounted) {
+        // Jika login gagal
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Login gagal. Username atau password salah.'),
@@ -57,25 +64,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
       }
-      // Jika berhasil → aplikasi akan redirect otomatis melalui listener auth
     } catch (e) {
+      // Tangani error umum
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Terjadi kesalahan: $e'),
+            content: Text('Terjadi kesalahan: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      // 3. Matikan loading
+      // 3. Matikan loading (hanya terjadi jika login gagal atau ada exception, 
+      // karena jika sukses, layar LoginScreen sudah dihapus dari tumpukan)
       ref.read(loadingStateProvider.notifier).state = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // KOREKSI: Panggil ref.watch() HANYA di dalam build() atau fungsi lain yang menerima WidgetRef.
+    // Panggil ref.watch() untuk mendengarkan perubahan status loading
     final isLoading = ref.watch(loadingStateProvider);
 
     return Scaffold(
@@ -86,8 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
-          // Menggunakan Form untuk validasi
-          child: Form( 
+          child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
 
                 // Input Username
-                TextFormField( // Menggunakan TextFormField agar bisa divalidasi
+                TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
                     labelText: 'Username',
@@ -119,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
 
                 // Input Password
-                TextFormField( // Menggunakan TextFormField agar bisa divalidasi
+                TextFormField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
@@ -138,7 +145,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Tombol Login
                 ElevatedButton(
-                  // Menambahkan pengecekan _formKey.currentState!.validate() sebelum memanggil _attemptLogin
                   onPressed: isLoading ? null : _attemptLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -164,12 +170,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Tombol Register
                 TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const RegisterScreen(),
-                      ),
-                    );
+                    // Navigasi menggunakan named route '/register'
+                    Navigator.pushNamed(context, '/register');
                   },
                   child: const Text('Belum punya akun? Daftar'),
                 ),

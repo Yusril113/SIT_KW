@@ -25,7 +25,7 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
   @override
   void initState() {
     super.initState();
-    // Isi field dengan catatan yang sudah ada jika ada (walaupun seharusnya kosong saat Pending)
+    // Isi field dengan catatan yang sudah ada
     _notesController.text = widget.report.officerNotes ?? '';
   }
 
@@ -67,7 +67,9 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
       final updatedReport = widget.report.copyWith(
         status: 'Selesai',
         officerNotes: _notesController.text.trim(),
-        officerImagePath: _pickedOfficerImage!.path,
+        // Catatan: Karena kita menggunakan File.path, pastikan ReportModel.copyWith
+        // dapat menangani tipe data string untuk officerImagePath.
+        officerImagePath: _pickedOfficerImage!.path, 
       );
 
       // 2. Panggil metode updateReport di Notifier
@@ -81,9 +83,12 @@ class _EditReportScreenState extends ConsumerState<EditReportScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Kembali ke Detail Screen, lalu Detail Screen akan kembali ke Dashboard
-        Navigator.pop(context); // Tutup Edit Screen
-        Navigator.pop(context); // Tutup Detail Screen
+        
+        // KOREKSI NAVIGASI:
+        // Cukup pop sekali dan kirim 'true' sebagai hasil.
+        // Detail Screen (yang memanggil EditReportScreen) bertanggung jawab 
+        // untuk menangani hasil 'true' ini, misalnya dengan pop sendiri ke Dashboard.
+        Navigator.pop(context, true); 
       }
     } catch (e) {
       if (mounted) {
