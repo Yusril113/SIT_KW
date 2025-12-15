@@ -9,7 +9,7 @@ import '/providers/report_provider.dart';
 //import '/widget/summary_card.dart'; // Diperlukan untuk Mhs 3 Header Ringkasan
 import 'setting_screen.dart'; // Diperlukan untuk Navigasi Settings (Mhs 1)
 import 'add_screen_report.dart'; // Diperlukan untuk FAB (Mhs 2)
-import 'datail_report_screen.dart'; // Diperlukan untuk ListTile onTap (Mhs 4)
+import 'detail_report_screen.dart'; // Diperlukan untuk ListTile onTap (Mhs 4)
 //import '/screens/edit_report_screen.dart';
 
 
